@@ -5,6 +5,11 @@ from data import load_result_data
 
 
 def render():
+    # 👇 결과 진입 시 강제로 새로 시작 느낌 만들기
+    if st.session_state.get("scroll_top", False):
+        st.session_state.scroll_top = False
+        st.empty()  # 강제 리렌더 트릭
+
     show_header()
 
     results = load_result_data()
@@ -12,6 +17,7 @@ def render():
     r = results[result_type]
     scores = st.session_state.scores
 
+    # 결과 이미지
     result_image_map = {
         "impulse": "assets/result2.png",
         "coupang": "assets/result3.png",
@@ -21,6 +27,7 @@ def render():
 
     st.image(result_image_map[result_type], use_container_width=True)
 
+    # 결과 카드
     with st.container(border=True):
         st.markdown(f"### {r['emoji']} {r['title']}")
 
@@ -30,6 +37,9 @@ def render():
         with st.expander("💡 소비 개선 팁 보기"):
             st.write(r["tip"])
 
+    # =========================
+    # 📊 원형 그래프 (CSS)
+    # =========================
     st.markdown("### 📊 유형별 점수 분포")
 
     score_items = sorted(scores.items(), key=lambda x: x[1], reverse=True)
@@ -88,6 +98,9 @@ def render():
         unsafe_allow_html=True,
     )
 
+    # =========================
+    # 📋 점수 카드
+    # =========================
     st.markdown("#### 점수 상세")
 
     for t, s in score_items:
@@ -127,6 +140,7 @@ def render():
 
     st.markdown("---")
 
+    # 버튼
     col1, col2 = st.columns(2)
 
     with col1:

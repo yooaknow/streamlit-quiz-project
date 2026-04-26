@@ -148,6 +148,7 @@ def render():
             else:
                 _calculate_and_save(questions, st.session_state.answers)
                 st.session_state.page = "result"
+                st.query_params["scroll"] = "top"
                 st.rerun()
 
     st.markdown("---")
