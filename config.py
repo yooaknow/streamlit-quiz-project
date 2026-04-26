@@ -6,4 +6,6 @@ USERS = {
     "student": "1234",
     "admin": "admin",
     "test": "test",
+    "ahreum":"1228",
 }
+git add config.py data.py pages/result.py

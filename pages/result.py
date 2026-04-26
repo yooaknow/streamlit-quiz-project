@@ -1,4 +1,5 @@
 import streamlit as st
+
 from components import show_header
 from data import load_result_data
 
@@ -11,7 +12,6 @@ def render():
     r = results[result_type]
     scores = st.session_state.scores
 
-    # 결과 타입별 이미지 매핑
     result_image_map = {
         "impulse": "assets/result2.png",
         "coupang": "assets/result3.png",
@@ -19,23 +19,111 @@ def render():
         "saving": "assets/result4.png",
     }
 
-    # 결과 이미지 출력
     st.image(result_image_map[result_type], use_container_width=True)
 
-    # 유형 설명
     with st.container(border=True):
         st.markdown(f"### {r['emoji']} {r['title']}")
-        st.markdown(f"**📖 유형 설명**\n\n{r['desc']}")
-        st.markdown(f"\n{r['tip']}")
 
-    # 점수 분포
+        with st.expander("📖 유형 설명 자세히 보기"):
+            st.write(r["desc"])
+
+        with st.expander("💡 소비 개선 팁 보기"):
+            st.write(r["tip"])
+
     st.markdown("### 📊 유형별 점수 분포")
-    max_score = max(scores.values()) if max(scores.values()) > 0 else 1
 
-    for t, s in sorted(scores.items(), key=lambda x: x[1], reverse=True):
-        emoji = results[t]["emoji"]
-        st.markdown(f"{emoji} **{results[t]['title']}**")
-        st.progress(s / max_score, text=f"{s}점")
+    score_items = sorted(scores.items(), key=lambda x: x[1], reverse=True)
+    total_score = sum(scores.values()) if sum(scores.values()) > 0 else 1
+
+    colors = {
+        "impulse": "#F6A6B2",
+        "coupang": "#8DB7E8",
+        "small_happy": "#F3C77B",
+        "saving": "#9BBC7D",
+    }
+
+    start = 0
+    gradient_parts = []
+
+    for t, s in score_items:
+        percent = s / total_score * 100
+        end = start + percent
+        gradient_parts.append(f"{colors[t]} {start:.1f}% {end:.1f}%")
+        start = end
+
+    gradient = ", ".join(gradient_parts)
+
+    st.markdown(
+        f"""
+        <div style="
+            max-width:340px;
+            height:340px;
+            margin:1.2rem auto;
+            border-radius:50%;
+            background:conic-gradient({gradient});
+            position:relative;
+            box-shadow:0 8px 24px rgba(0,0,0,0.06);
+        ">
+            <div style="
+                position:absolute;
+                width:160px;
+                height:160px;
+                background:white;
+                border-radius:50%;
+                top:50%;
+                left:50%;
+                transform:translate(-50%, -50%);
+                display:flex;
+                align-items:center;
+                justify-content:center;
+                font-weight:900;
+                color:#33412A;
+                text-align:center;
+                line-height:1.4;
+            ">
+                나의<br>소비 유형
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    st.markdown("#### 점수 상세")
+
+    for t, s in score_items:
+        percent = round(s / total_score * 100)
+
+        st.markdown(
+            f"""
+            <div style="
+                background:#FFFFFF;
+                border:1px solid #E5E7EB;
+                border-radius:14px;
+                padding:0.85rem 1rem;
+                margin-bottom:0.6rem;
+                display:flex;
+                justify-content:space-between;
+                align-items:center;
+            ">
+                <div style="display:flex;align-items:center;gap:0.6rem;">
+                    <span style="
+                        width:12px;
+                        height:12px;
+                        border-radius:50%;
+                        background:{colors[t]};
+                        display:inline-block;
+                    "></span>
+                    <span style="font-weight:800;color:#33412A;">
+                        {results[t]['emoji']} {results[t]['title']}
+                    </span>
+                </div>
+                <span style="font-weight:900;color:#8BAA6F;">
+                    {s}점 · {percent}%
+                </span>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
 
     st.markdown("---")
 
@@ -61,7 +149,6 @@ def render():
 
 
 def _reset_quiz():
-    """퀴즈 결과와 진행 상태를 초기화합니다."""
     st.session_state.current_q = 0
     st.session_state.answers = {}
     st.session_state.scores = {}
@@ -72,7 +159,6 @@ def _reset_quiz():
 
 
 def _logout():
-    """로그아웃 처리: 세션 전체를 초기화합니다."""
     st.session_state.logged_in = False
     st.session_state.username = ""
     st.session_state.page = "home"
