@@ -8,4 +8,3 @@ USERS = {
     "test": "test",
     "ahreum":"1228",
 }
-git add config.py data.py pages/result.py
